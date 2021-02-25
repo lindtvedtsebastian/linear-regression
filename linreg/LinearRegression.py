@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn import preprocessing
 
 plt.rcParams['figure.figsize'] = (12.0, 9.0)
-plt.ticklabel_format(style='plain')
+#plt.ticklabel_format(style='plain')
 
 
 class LinearRegression:
@@ -22,25 +22,28 @@ class LinearRegression:
         self.b1 = 0
         self.b0 = 0
 
-        self.loss_over_iterations = []
+        self.iterations = []
+        self.costs = []
 
     # Plots the data, including the linear regression line, if the model has been trained.
     def plot_model_data(self):
         plt.xlabel(self.x_name)
         plt.ylabel(self.y_name)
+        plt.suptitle(self.y_name + ' against ' + self.x_name)
         plt.scatter(self.data[self.x_name], self.data[self.y_name], c="black")
 
+        #If model has been trained, plot the line for the linear-regression aswell.
         if self.b1 != 0 and self.b0 != 0:
             pred_y = self.b1 * self.x + self.b0
-            plt.plot([min(self.x), max(self.x)], [min(pred_y), max(pred_y)], color='blue')  # regression line
+            plt.plot([min(self.x), max(self.x)], [min(pred_y), max(pred_y)], color='red')  # regression line
         plt.show()
 
     def plot_loss(self):
-        plt.xlabel("Iterations")
-        plt.ylabel("Loss")
-        plt.scatter(range(300), self.loss_over_iterations)
+        plt.xlabel('Iterations')
+        plt.ylabel('Loss')
+        plt.suptitle('Loss over iteration')
+        plt.plot(self.iterations, self.costs, linewidth=1)
         plt.show()
-
 
     def train(self, learning_rate=0.0001, iterations=500):
         n = float(len(self.x))  # Number of samples
@@ -48,17 +51,25 @@ class LinearRegression:
         self.b1 = 0  # Resets the values, if one wants to train the model again. The reason for wanting
         self.b0 = 0  # to train a model again can be to change learning rate, amount of iterations, etc.
 
+
         # Trains the model
         for i in range(iterations):
             predicted_y = self.b1 * self.x + self.b0
 
-            der_b1 = (-2 / n) * sum(self.x * (self.y - predicted_y))  # Partial derivative of b1.
-            der_b0 = (-2 / n) * sum(self.y - predicted_y)  # Partial derivative of b0.
+            der_b1 = (-2 / n) * sum(self.x * (self.y - predicted_y))    # Partial derivative of b1.
+            der_b0 = (-2 / n) * sum(self.y - predicted_y)               # Partial derivative of b0.
 
             self.b1 = self.b1 - learning_rate * der_b1
             self.b0 = self.b0 - learning_rate * der_b0
 
+            self.iterations.append(i)
+            self.costs.append(self.calc_loss(predicted_y))
+
         print(self.b1, self.b0)
+
+    def calc_loss(self, pred_y):
+        n = len(self.x)
+        return (sum((self.b0 + self.b1 * self.x)-pred_y)**2)/2*n
 
     def predict(self, x):
         if self.b1 != 0 and self.b0 != 0:
